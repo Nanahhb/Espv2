@@ -1,0 +1,365 @@
+
+--[[
+    🌹 NANAHHB ESP - ROSE PINK EDITION
+    Roblox Studio | Android + PC
+    Đặt LocalScript trong StarterPlayerScripts
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local PINK = Color3.fromRGB(255, 190, 220)
+local LIGHT_PINK = Color3.fromRGB(255, 220, 235)
+local DEEP_PINK = Color3.fromRGB(225, 105, 160)
+local CREAM = Color3.fromRGB(255, 248, 252)
+local TEXT = Color3.fromRGB(155, 65, 105)
+
+local old = PlayerGui:FindFirstChild("NanahhbESP")
+if old then old:Destroy() end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "NanahhbESP"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 20
+gui.Parent = PlayerGui
+
+local function corner(object, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = object
+end
+
+local function outline(object, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color
+    s.Thickness = thickness
+    s.Parent = object
+end
+
+-- NÚT HOA HỒNG NỔI
+local rose = Instance.new("TextButton")
+rose.Name = "RoseButton"
+rose.Size = UDim2.fromOffset(58, 58)
+rose.Position = UDim2.new(0, 22, 0.45, 0)
+rose.BackgroundColor3 = CREAM
+rose.Text = "🌹"
+rose.TextSize = 31
+rose.AutoButtonColor = true
+rose.Parent = gui
+corner(rose, 17)
+outline(rose, PINK, 2)
+
+-- MENU CHÍNH
+local menu = Instance.new("Frame")
+menu.Name = "MainMenu"
+menu.Size = UDim2.fromOffset(285, 310)
+menu.Position = UDim2.new(0.5, -142, 0.5, -155)
+menu.BackgroundColor3 = CREAM
+menu.Visible = true
+menu.Parent = gui
+corner(menu, 18)
+outline(menu, PINK, 2)
+
+local sizeLimit = Instance.new("UISizeConstraint")
+sizeLimit.MaxSize = Vector2.new(340, 380)
+sizeLimit.MinSize = Vector2.new(250, 300)
+sizeLimit.Parent = menu
+
+-- TIÊU ĐỀ NANAHHB
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 0, 48)
+title.Position = UDim2.fromOffset(12, 5)
+title.BackgroundTransparency = 1
+title.Text = "🌹 Nanahhb 🌹"
+title.TextColor3 = DEEP_PINK
+title.TextSize = 23
+title.Font = Enum.Font.GothamBold
+title.Parent = menu
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(32, 32)
+close.Position = UDim2.new(1, -39, 0, 9)
+close.BackgroundColor3 = LIGHT_PINK
+close.Text = "×"
+close.TextColor3 = TEXT
+close.TextSize = 25
+close.Font = Enum.Font.GothamBold
+close.Parent = menu
+corner(close, 10)
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -20, 0, 24)
+subtitle.Position = UDim2.fromOffset(10, 48)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "PLAYER ESP  •  ROSE EDITION"
+subtitle.TextColor3 = TEXT
+subtitle.TextSize = 11
+subtitle.Font = Enum.Font.GothamMedium
+subtitle.Parent = menu
+
+local features = {
+    {name = "Player ESP", key = "Player"},
+    {name = "Friend ESP", key = "Friend"},
+    {name = "Name ESP", key = "Name"},
+    {name = "Highlight ESP", key = "Highlight"},
+}
+
+local enabled = {
+    Player = false,
+    Friend = false,
+    Name = false,
+    Highlight = false,
+}
+
+local buttons = {}
+local highlights = {}
+local tags = {}
+local connections = {}
+
+local function isFriend(player)
+    local ok, result = pcall(function()
+        return LocalPlayer:IsFriendsWith(player.UserId)
+    end)
+    return ok and result
+end
+
+local function clearPlayer(player)
+    if highlights[player] then
+        highlights[player]:Destroy()
+        highlights[player] = nil
+    end
+    if tags[player] then
+        tags[player]:Destroy()
+        tags[player] = nil
+    end
+end
+
+local function refreshPlayer(player)
+    clearPlayer(player)
+
+    if player == LocalPlayer then return end
+
+    local character = player.Character
+    if not character then return end
+
+    local friend = isFriend(player)
+    local showHighlight =
+        (enabled.Friend and friend)
+        or enabled.Highlight
+        or (enabled.Player and not friend)
+
+    if showHighlight then
+        local h = Instance.new("Highlight")
+        h.Name = "NanahhbPlayerHighlight"
+        h.Adornee = character
+        h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        h.FillTransparency = 0.72
+        h.OutlineTransparency = 0
+
+        if enabled.Friend and friend then
+            h.FillColor = LIGHT_PINK
+            h.OutlineColor = PINK
+        elseif enabled.Highlight then
+            h.FillColor = PINK
+            h.OutlineColor = DEEP_PINK
+        else
+            h.FillColor = Color3.fromRGB(255, 235, 245)
+            h.OutlineColor = PINK
+        end
+
+        h.Parent = character
+        highlights[player] = h
+    end
+
+    if enabled.Name or (enabled.Player and not friend)
+        or (enabled.Friend and friend) then
+
+        local head = character:FindFirstChild("Head")
+        if head then
+            local tag = Instance.new("BillboardGui")
+            tag.Name = "NanahhbNameTag"
+            tag.Size = UDim2.fromOffset(220, 38)
+            tag.StudsOffset = Vector3.new(0, 2.8, 0)
+            tag.AlwaysOnTop = true
+            tag.Adornee = head
+            tag.Parent = head
+
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.fromScale(1, 1)
+            label.BackgroundTransparency = 1
+            label.TextColor3 = (enabled.Friend and friend)
+                and LIGHT_PINK or DEEP_PINK
+            label.TextStrokeColor3 = Color3.fromRGB(100, 45, 70)
+            label.TextStrokeTransparency = 0.35
+            label.TextScaled = true
+            label.Font = Enum.Font.GothamBold
+
+            if friend then
+                label.Text = "♥ " .. player.DisplayName
+                    .. " (@" .. player.Name .. ")"
+            else
+                label.Text = player.DisplayName
+                    .. " (@" .. player.Name .. ")"
+            end
+
+            label.Parent = tag
+            tags[player] = tag
+        end
+    end
+end
+
+local function refreshAll()
+    for _, player in ipairs(Players:GetPlayers()) do
+        refreshPlayer(player)
+    end
+end
+
+local function updateButton(key)
+    local button = buttons[key]
+    if not button then return end
+
+    button.Text = features[
+        table.find({"Player", "Friend", "Name", "Highlight"}, key)
+    ].name .. (enabled[key] and "   ON ✓" or "   OFF")
+
+    button.BackgroundColor3 = enabled[key] and PINK or LIGHT_PINK
+end
+
+for index, feature in ipairs(features) do
+    local button = Instance.new("TextButton")
+    button.Name = feature.key .. "Button"
+    button.Size = UDim2.new(1, -24, 0, 43)
+    button.Position = UDim2.fromOffset(12, 79 + (index - 1) * 51)
+    button.BackgroundColor3 = LIGHT_PINK
+    button.Text = feature.name .. "   OFF"
+    button.TextColor3 = TEXT
+    button.TextSize = 15
+    button.Font = Enum.Font.GothamBold
+    button.Parent = menu
+    corner(button, 12)
+    outline(button, PINK, 1)
+
+    buttons[feature.key] = button
+
+    button.Activated:Connect(function()
+        enabled[feature.key] = not enabled[feature.key]
+        updateButton(feature.key)
+        refreshAll()
+    end)
+end
+
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, -20, 0, 22)
+footer.Position = UDim2.new(0, 10, 1, -25)
+footer.BackgroundTransparency = 1
+footer.Text = "Made with 🌹 by Nanahhb"
+footer.TextColor3 = DEEP_PINK
+footer.TextSize = 12
+footer.Font = Enum.Font.GothamMedium
+footer.Parent = menu
+
+-- ẨN / HIỆN MENU
+local function toggleMenu()
+    menu.Visible = not menu.Visible
+end
+
+rose.Activated:Connect(toggleMenu)
+close.Activated:Connect(function()
+    menu.Visible = false
+end)
+
+-- KÉO THẢ NÚT HOA HỒNG VÀ MENU TRÊN PC + MOBILE
+local function makeDraggable(object)
+    local dragging = false
+    local moved = false
+    local startInput
+    local startPosition
+    local dragInput
+
+    object.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            moved = false
+            startInput = input.Position
+            startPosition = object.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    object.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input == dragInput
+            or input.UserInputType == Enum.UserInputType.Touch) then
+
+            local delta = input.Position - startInput
+            if delta.Magnitude > 5 then moved = true end
+
+            object.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    if object == rose then
+        object.Activated:Connect(function()
+            if moved then
+                -- Ngănการสลับเมนูเมื่อ kéo nút
+            end
+        end)
+    end
+end
+
+makeDraggable(rose)
+makeDraggable(menu)
+
+-- THEO DÕI NGƯỜI CHƠI MỚI VÀ HỒI SINH
+local function setupPlayer(player)
+    if player == LocalPlayer then return end
+
+    if connections[player] then
+        connections[player]:Disconnect()
+    end
+
+    connections[player] = player.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        refreshPlayer(player)
+    end)
+
+    if player.Character then
+        refreshPlayer(player)
+    end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    setupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+
+Players.PlayerRemoving:Connect(function(player)
+    clearPlayer(player)
+
+    if connections[player] then
+        connections[player]:Disconnect()
+        connections[player] = nil
+    end
+end)
